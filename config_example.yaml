@@ -1,0 +1,43 @@
+# web config
+server:
+    port: 8081
+    qrcode_release: trial  # 二维码版本 要打开的小程序版本。正式版为 "release"，体验版为 "trial"，开发版为 "develop"
+
+
+# 数据库配置
+database:
+    driver: postgres
+    user: postgres
+    password: langong@2023
+    addr: 113.59.48.145
+    port: 6024
+    dbname: hainan
+    zone: Asia/Shanghai
+
+# jwt signature
+jwt:
+    key: xiaoxu
+
+
+# minio
+minio:
+    endpoint: 10.168.2.116:9000
+    accesskey: minioadmin
+    accesssecret: minioadmin
+    ssl: false
+    bucket: local
+
+# redis
+redis:
+    host: 10.168.2.116:6379
+    password: langong@2023
+    database: 8
+
+
+# wechat_miniprogram
+miniprogram:
+    appid: wx0bad372de61c7296
+    appsecret: e3fbe59a42d919b40f418787900f2d91
+    openapi: 9a42d919b40f4187879
+
+

@@ -12,10 +12,10 @@ fi
 # 将文件名的首字母转为大写
 capitalizedFileName="${fileName^}"
 
-handler="../internal/handler"
-model="../internal/model"
-router="../internal/router"
-service="../internal/service"
+handler="../handler"
+model="../model"
+router="../router"
+service="../service"
 
 if [ ! -d "$handler" ]; then
     mkdir -p "$handler"
@@ -33,23 +33,25 @@ if [ ! -d "$service" ]; then
     mkdir -p "$service"
 fi
 
+
+
 # handler 开始
 handlerContent="package $(basename $handler)
 
 import (
 	\"github.com/gofiber/fiber/v2\"
-	\"sunny/internal/model\"
-	\"sunny/internal/service\"
-	\"sunny/pkg/respond\"
+	\"shoollove/model\"
+	\"shoollove/service\"
+	\"shoollove/pkg/respond\"
 )
 
 // ${capitalizedFileName}Add 添加
 func ${capitalizedFileName}Add(c *fiber.Ctx) error {
 
-	var req model.${capitalizedFileName}Req
+	var req model.${capitalizedFileName}
 
 	if err := c.BodyParser(&req); err != nil {
-		respond.Error(c, \"参数错误\")
+		return respond.Error(c, \"参数错误\")
 	}
 
     resp , err := service.${capitalizedFileName}Add(req)
@@ -63,10 +65,10 @@ func ${capitalizedFileName}Add(c *fiber.Ctx) error {
 // ${capitalizedFileName}Edit 修改
 func ${capitalizedFileName}Edit(c *fiber.Ctx) error {
 
-	var req model.${capitalizedFileName}Req
+	var req model.${capitalizedFileName}
 
 	if err := c.BodyParser(&req); err != nil {
-		respond.Error(c, \"参数错误\")
+		return respond.Error(c, \"参数错误\")
 	}
 
     resp , err := service.${capitalizedFileName}Edit(req)
@@ -80,10 +82,10 @@ func ${capitalizedFileName}Edit(c *fiber.Ctx) error {
 // ${capitalizedFileName}Delete 删除
 func ${capitalizedFileName}Delete(c *fiber.Ctx) error {
 
-	var req model.${capitalizedFileName}Req
+	var req model.${capitalizedFileName}
 
 	if err := c.BodyParser(&req); err != nil {
-		respond.Error(c, \"参数错误\")
+		return respond.Error(c, \"参数错误\")
 	}
 
     resp , err := service.${capitalizedFileName}Delete(req)
@@ -96,10 +98,10 @@ func ${capitalizedFileName}Delete(c *fiber.Ctx) error {
 // ${capitalizedFileName}Get 查询
 func ${capitalizedFileName}Get(c *fiber.Ctx) error {
 
-	var req model.${capitalizedFileName}Req
+	var req model.${capitalizedFileName}
 
 	if err := c.QueryParser(&req); err != nil {
-		respond.Error(c, \"参数错误\")
+		return respond.Error(c, \"参数错误\")
 	}
 
     resp , err := service.${capitalizedFileName}Get(req)
@@ -113,10 +115,10 @@ func ${capitalizedFileName}Get(c *fiber.Ctx) error {
 // ${capitalizedFileName}Form 精准查询
 func ${capitalizedFileName}Form(c *fiber.Ctx) error {
 
-	var req model.${capitalizedFileName}Req
+	var req model.${capitalizedFileName}
 
 	if err := c.QueryParser(&req); err != nil {
-		respond.Error(c, \"参数错误\")
+		return respond.Error(c, \"参数错误\")
 	}
 
     resp , err := service.${capitalizedFileName}Form(req)
@@ -133,15 +135,11 @@ modelContent="package $(basename $model)
 
 import (
     \"gorm.io/gorm\"
-    \"sunny/pkg/custom\"
-    \"sunny/pkg/utils\"
+    \"shoollove/pkg/utils\"
 )
 
 // $capitalizedFileName 模型
 type $capitalizedFileName struct {
-    custom.Id   \`gorm:\"column:id\" json:\"id,omitempty\"\`
-    custom.At \`gorm:\"column:created_at\" json:\"createdAt,omitempty\"\`
-    custom.DeletedAt \`gorm:\"column:deleted_at\" json:\"deletedAt,omitempty\"\`
 }
 
 // ${capitalizedFileName}Req 添加请求参数
@@ -153,28 +151,20 @@ type ${capitalizedFileName}Req struct {
 // ${capitalizedFileName}Resp 添加返回参数
 type ${capitalizedFileName}Resp struct {
 }
-
-
-// BeforeCreate 请不到删除 db *gorm.DB，要不然重写不了id值，用于添加逻辑
-func (s *${fileName^}) BeforeCreate(db *gorm.DB) (err error) {
-
-	s.ID = utils.UUID()
-
-	return
-}"
+"
 
 # model 结束
 
 # router 开始
 routerContent="package $(basename $router)
 
-import (
+import(
 	\"github.com/gofiber/fiber/v2\"
-    \"sunny/internal/handler\"
+    \"shoollove/handler\"
 )
 
 // ${fileName} 路由，记得把 ${fileName}(app) 添加把 router.go 中
-func ${fileName}(app *fiber.App) {
+func ${fileName^}(app *fiber.App) {
 
 	${fileName}Router := app.Group(\"/${fileName}\")
 	{
@@ -192,15 +182,14 @@ serviceContent="package $(basename $service)
 
 import (
     \"context\"
-    \"sunny/internal/model\"
-    \"sunny/pkg/db\"
-    \"sunny/pkg/utils\"
-    \"sunny/pkg/serr\"
-    \"sunny/pkg/log\"
+    \"shoollove/model\"
+    \"shoollove/pkg/db\"
+    \"shoollove/pkg/utils\"
+    \"shoollove/pkg/serr\"
 )
 
 // ${capitalizedFileName}Add 添加
-func ${capitalizedFileName}Add(req model.${capitalizedFileName}Req) (resp model.${capitalizedFileName}Resp, err error) {
+func ${capitalizedFileName}Add(req model.${capitalizedFileName}) (resp model.${capitalizedFileName}Resp, err error) {
 
     dbBegin := db.Gorm.Begin()
 
@@ -238,7 +227,7 @@ func ${capitalizedFileName}Add(req model.${capitalizedFileName}Req) (resp model.
 }
 
 // ${capitalizedFileName}Edit 编辑
-func ${capitalizedFileName}Edit(req model.${capitalizedFileName}Req) (resp model.${capitalizedFileName}Resp, err error) {
+func ${capitalizedFileName}Edit(req model.${capitalizedFileName}) (resp model.${capitalizedFileName}Resp, err error) {
     session := db.Gorm
 
 	param := model.${capitalizedFileName}{}
@@ -255,7 +244,7 @@ func ${capitalizedFileName}Edit(req model.${capitalizedFileName}Req) (resp model
 }
 
 // ${capitalizedFileName}Delete 删除
-func ${capitalizedFileName}Delete(req model.${capitalizedFileName}Req) (resp model.${capitalizedFileName}Resp, err error) {
+func ${capitalizedFileName}Delete(req model.${capitalizedFileName}) (resp model.${capitalizedFileName}Resp, err error) {
     session := db.Gorm
 
 	param := model.${capitalizedFileName}{}
@@ -273,7 +262,7 @@ func ${capitalizedFileName}Delete(req model.${capitalizedFileName}Req) (resp mod
 
 
 // ${capitalizedFileName}Get 查询
-func ${capitalizedFileName}Get(req model.${capitalizedFileName}Req) (resp model.${capitalizedFileName}Resp, err error) {
+func ${capitalizedFileName}Get(req model.${capitalizedFileName}) (resp model.${capitalizedFileName}Resp, err error) {
     session := db.Gorm
 
 	param := model.${capitalizedFileName}{}
@@ -281,18 +270,19 @@ func ${capitalizedFileName}Get(req model.${capitalizedFileName}Req) (resp model.
 	// var ${fileName} ${fileName}
 	// 请求参数处理后添加到数据库
 	// 赋值操作
-	offset, limit := utils.Page(req.Page, req.Limit)
-	err = session.Model(&model.User{}).Offset(int(offset)).Limit(int(limit)).Find(&param).Error
+	result, err := utils.IPage(req.CurrentPage, req.PageSize, session, param)
+	err = session.Model(&model.${capitalizedFileName}{}).Offset(int(offset)).Limit(int(limit)).Find(&param).Error
 	if err != nil {
 		log.ZapSqlLog().Error(context.Background(), \"UserDelete\", err.Error())
 		return resp, serr.Serr{Code: serr.Fail, Msg: err.Error()}
 	}
+	resp.Result = result
     return resp, nil
 }
 
 
 // ${capitalizedFileName}Form 查询
-func ${capitalizedFileName}Form(req model.${capitalizedFileName}Req) (resp model.${capitalizedFileName}Resp, err error) {
+func ${capitalizedFileName}Form(req model.${capitalizedFileName}) (resp model.${capitalizedFileName}Resp, err error) {
     session := db.Gorm
 
 	param := model.${capitalizedFileName}{}
